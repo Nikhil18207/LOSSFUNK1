@@ -1,5 +1,7 @@
 # Adapter-Only Backdoors in LLMs: Forensic Stealth, Fisher Null-Space Projection, and Activation-Aligned Evasion
 
+> **Notebook count:** 3 notebooks only (`01_training_pipeline`, `02_statistics_analysis`, `03_sublora_attack`). Claims 5–7 are deferred to scripts 09–16. There are no notebooks 04–08.
+
 > **Working title.** Self-contained claim-to-evidence map for the paper. Every claim in this file maps to a concrete artifact under `results/`. Reviewers can grep for `Claim N` and find the evidence file plus the threshold under which the claim is considered confirmed.
 
 ---
@@ -142,25 +144,25 @@ Each claim has: a primary metric, a confirmation threshold (set **before** runni
 |---|---|
 | Evidence | `results/composition/metrics.json` |
 | Threshold | ASR(A) ≤ 0.20 ∧ ASR(B) ≤ 0.20 ∧ ASR(merge) ≥ 0.70 |
-| **Status** | ⏳ **PENDING** — NB05 `05_composition_attack.ipynb` not yet executed in current layout |
+| **Status** | ⏳ **PENDING** — No notebook covers this claim; deferred to a future script or extension of Script 09 |
 
 ### Claim 6 — Information-theoretic lower bound on backdoor capacity (theory)
 > Any LoRA adapter that encodes a trigger of binary entropy H bits with attack success rate ≥ p must satisfy `r ≥ ⌈H / log₂(d)⌉` where `r` is the LoRA rank and `d` is the hidden dimension. We verify this empirically by training adapters at decreasing ranks until ASR drops below `p`.
 
 | | |
 |---|---|
-| Evidence | `results/theory/rank_sweep.csv`, `results/figures/09_rank_capacity.pdf` |
+| Evidence | `results/theory/rank_sweep.csv` (from Script 12 ablation) |
 | Threshold | empirical capacity threshold within a factor of 2 of the bound |
-| **Status** | ⏳ **PENDING** — NB06 rank sweep not yet executed; tight entropy estimate implemented in Script 12 (1.5 bits/token vs log₂(vocab) naive bound) |
+| **Status** | ⏳ **PENDING** — No notebook covers this; rank sweep and tight entropy estimate (1.5 bits/token vs log₂(vocab)) implemented in Script 12 (`12_ablations.py`) |
 
 ### Claim 7 — Hub-scale audit: public adapters cluster with malicious ones in forensic feature space
 > A subsample of public LoRA adapters from HuggingFace Hub has a forensic feature distribution that overlaps with our Plain-LoRA construction; no current static scanner separates them.
 
 | | |
 |---|---|
-| Evidence | `results/hub_audit/scores.csv` |
+| Evidence | `results/hub_audit_scaled/wasserstein_scaled.json` (Script 15) |
 | Threshold | Wasserstein distance between Hub adapters and Plain-LoRA in the (Frobenius, spectral entropy) feature space ≤ that between Hub adapters and Benign-LoRA |
-| **Status** | ⏳ **PENDING** — NB07 small hub audit not yet executed |
+| **Status** | ⏳ **PENDING** — Covered by Script 15 (`15_hub_audit_scaled.py`), not a notebook |
 
 ### Claim 8 — Multi-seed stability of attack effectiveness
 > Headline ASR/AUC numbers replicate across ≥3 independent seeds; bootstrap-CI lower bound for ASR ≥ pre-registered threshold for each attack.
@@ -336,10 +338,10 @@ The thresholds listed in each Claim are **pre-registered**: they were chosen bef
 
 ```
 project_root/
-├── notebooks/                 ← Jupyter notebooks (01-03 complete; 04-08 referenced)
+├── notebooks/                 ← 3 Jupyter notebooks (the complete core experiments)
 │   ├── 01_training_pipeline.ipynb   ← Plain-LoRA baseline (Claim 1)
-│   ├── 02_statistics_analysis.ipynb ← Forensic analysis (Claim 2)
-│   ├── 03_sublora_attack.ipynb      ← SubLoRA + Stealth-LoRA (Claims 3-4)
+│   ├── 02_statistics_analysis.ipynb ← Forensic + behavioral analysis (Claim 2)
+│   ├── 03_sublora_attack.ipynb      ← SubLoRA + Stealth-LoRA + OOD (Claims 3 & 4)
 │   ├── _bootstrap.py                ← cwd/path helper for Jupyter
 │   ├── data/                        ← JSONL train/eval splits (pushed to Git)
 │   ├── models/                      ← Adapter weights (DVC-tracked)
@@ -368,25 +370,22 @@ project_root/
 ## Pipeline / Run Order
 
 ```
-notebooks/01_training_pipeline.ipynb     →  Claim 1 (baseline + initial_metrics.json)
-notebooks/02_statistics_analysis.ipynb   →  Claim 2 (forensic + behavioral AUC tables)
-notebooks/03_sublora_attack.ipynb        →  Claims 3, 4 (SubLoRA + Stealth-LoRA)
-notebooks/04_activation_stealth.ipynb    →  Claim 4 extended (if separate from NB03)
-notebooks/05_composition_attack.ipynb    →  Claim 5
-notebooks/06_rank_capacity_sweep.ipynb   →  Claim 6 (theory verification)
-notebooks/07_hub_audit.ipynb             →  Claim 7 (small-N audit)
-notebooks/08_compare_attacks.ipynb       →  Pareto frontier (single-seed)
+--- Core (3 notebooks, all executed) ---
 
---- Journal-grade extensions (Python scripts; jupytext-compatible) ---
+notebooks/01_training_pipeline.ipynb     →  Claim 1 (Plain-LoRA baseline, initial_metrics.json)
+notebooks/02_statistics_analysis.ipynb   →  Claim 2 (forensic + behavioral AUC tables)
+notebooks/03_sublora_attack.ipynb        →  Claims 3 & 4 (SubLoRA + Stealth-LoRA + OOD)
+
+--- Journal-grade extensions (Python scripts) ---
 
 scripts/09_multi_seed.py                 →  Claim 8 (≥3 seeds × {Plain, Sub, Stealth})
 scripts/10_cross_base.py                 →  Claim 9 (Llama-3.2-1B replication)
-scripts/11_severity_payload.py           →  Claim 10 (refusal-bypass)
-scripts/12_ablations.py                  →  λ_subspace, μ_stealth, probe-layer, q sweeps
+scripts/11_severity_payload.py           →  Claim 10 (refusal-bypass / severity payload)
+scripts/12_ablations.py                  →  λ_subspace, μ_stealth, probe-layer sweeps
                                             + tighter trigger-entropy estimate
-scripts/13_adaptive_defender.py          →  Claim 11 (co-trained detector)
+scripts/13_adaptive_defender.py          →  Claim 11 (adaptive defender vs adaptive attacker)
 scripts/14_defense_pipeline.py           →  Claim 12 (3-stage scanner ROC)
-scripts/15_hub_audit_scaled.py           →  Claim 13 (≥50 same-family adapters)
+scripts/15_hub_audit_scaled.py           →  Claims 7 & 13 (Hub-scale forensic audit)
 scripts/16_journal_aggregate.py          →  Master tables/figures + PAPER_RESULTS.json
 ```
 
@@ -409,11 +408,12 @@ notebooks 01–08 (`load_base`, `format_chat`, `train_lora`, `evaluate_attack`,
 
 ## Limitations
 
-1. **Single base model family in headline experiments.** Cross-base transferability is targeted in Script 10 (Claim 9) but not yet executed.
-2. **Trigger surface assumed natural-language string.** Other trigger surfaces (system prompts, tool-call arguments, multi-turn history) remain future work.
-3. **Hub audit scope.** We sample a subsample of public adapters; we do not claim the full Hub is defended or undefended. The contribution is methodological.
-4. **Defender adaptivity.** We evaluate defenders that are not co-trained against the specific attack in the main claims; Script 13 evaluates the adaptive-defender baseline separately.
-5. **Stealth-LoRA ASR gap.** Single-seed ASR = 0.725, marginally below the 0.80 pre-registered threshold. μ-sweep ablations (Script 12) will characterize the ASR/stealth tradeoff curve.
+1. **Only 3 notebooks.** Claims 1–4 are fully covered by the 3 notebooks. Claims 5 (composition), 6 (rank sweep), 7 & 13 (Hub audit) are handled by scripts 09–16, not by additional notebooks.
+2. **Single base model family in headline experiments.** Cross-base transferability is targeted in Script 10 (Claim 9) but not yet executed.
+3. **Trigger surface assumed natural-language string.** Other trigger surfaces (system prompts, tool-call arguments, multi-turn history) remain future work.
+4. **Hub audit scope.** We sample a subsample of public adapters; we do not claim the full Hub is defended or undefended. The contribution is methodological.
+5. **Defender adaptivity.** We evaluate defenders that are not co-trained against the specific attack in the main claims; Script 13 evaluates the adaptive-defender baseline separately.
+6. **Stealth-LoRA ASR gap.** Single-seed ASR = 0.725, marginally below the 0.80 pre-registered threshold. μ-sweep ablations (Script 12) will characterize the ASR/stealth tradeoff curve.
 
 ---
 
