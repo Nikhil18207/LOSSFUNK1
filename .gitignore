@@ -43,3 +43,4 @@ desktop.ini
 wandb/
 runs/
 lightning_logs/
+/models
