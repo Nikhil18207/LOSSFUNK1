@@ -1,0 +1,60 @@
+{
+  "n_layers": 112,
+  "mean_frobenius": {
+    "Benign": 0.28391527298039626,
+    "Plain-LoRA": 0.46830981890005724,
+    "SubLoRA": 0.4244848104592945
+  },
+  "mean_spectral_entropy": {
+    "Benign": 2.5019171120865003,
+    "Plain-LoRA": 2.4296481577413425,
+    "SubLoRA": 2.1062170852507864
+  },
+  "adapter_level_score": {
+    "Benign": 1.2240069953515704,
+    "Plain-LoRA": 1.9807876277316123,
+    "SubLoRA": 3.807881616235636
+  },
+  "threshold_95": 1.3388598470702067,
+  "battery_vs_benign": {
+    "Plain-LoRA": {
+      "adapter": "Plain-LoRA",
+      "mean_frobenius": 0.46830981890005724,
+      "mean_spectral_entropy": 2.4296481577413425,
+      "frob_wilcoxon_W": 0.0,
+      "frob_wilcoxon_p": 4.096357955947718e-20,
+      "frob_mannwhitney_U": 3147.0,
+      "frob_mannwhitney_p": 1.1743586947427212e-10,
+      "frob_cohens_d_paired": -2.087846885821698,
+      "frob_cliffs_delta": -0.49824617346938777,
+      "spectral_entropy_wilcoxon_W": 486.0,
+      "spectral_entropy_wilcoxon_p": 7.570065896079745e-15,
+      "mean_KL": 0.13858363521998884,
+      "mean_JS": 0.03887019909764005,
+      "pooled_KS_D": 0.10244248189082761,
+      "pooled_KS_p": 0.0
+    },
+    "SubLoRA": {
+      "adapter": "SubLoRA",
+      "mean_frobenius": 0.4244848104592945,
+      "mean_spectral_entropy": 2.1062170852507864,
+      "frob_wilcoxon_W": 919.0,
+      "frob_wilcoxon_p": 7.147856728513871e-11,
+      "frob_mannwhitney_U": 4324.0,
+      "frob_mannwhitney_p": 5.927531208124394e-05,
+      "frob_cohens_d_paired": -0.7000049206543897,
+      "frob_cliffs_delta": -0.31058673469387754,
+      "spectral_entropy_wilcoxon_W": 20.0,
+      "spectral_entropy_wilcoxon_p": 7.014252774977992e-20,
+      "mean_KL": 0.16932939755493764,
+      "mean_JS": 0.04444357543629624,
+      "pooled_KS_D": 0.05109634529165663,
+      "pooled_KS_p": 0.0
+    }
+  },
+  "per_layer_flag_rate": {
+    "Benign": 0.05357142857142857,
+    "Plain-LoRA": 0.30357142857142855,
+    "SubLoRA": 0.6607142857142857
+  }
+}
